@@ -1,0 +1,35 @@
+import express from 'express';
+import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
+require('dotenv').config();
+import logger from 'morgan';
+import cors from 'cors';
+
+import routerApi from '../routes';
+const app = express();
+const port = parseInt(process.env.PORT, 10) || 3200;
+const mongoDB = process.env.MONGO_URL;
+
+app.set('port', port);
+
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cors());
+if (process.env.NODE_ENV === 'development') {
+  app.use(logger('dev'));
+}
+mongoose.connect(mongoDB);
+
+mongoose.Promise = global.Promise;
+const db = mongoose.connection;
+
+app.get('/', (req, res) => {
+   res.send('Welcome hospital management API');
+})
+app.use('/api', routerApi);
+
+db.on('error', console.error.bind(console, 'MongoDB connection error: '));
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+})
+
